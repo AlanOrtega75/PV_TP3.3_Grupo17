@@ -3,7 +3,16 @@ import React from 'react';
 const DetalleProyecto = ({ proyecto, onCerrar }) => {
   if (!proyecto) return null;
 
-  const { titulo, categoria, estado, id, descripcion, recursos, equipo } = proyecto;
+  const {
+    titulo,
+    categoria,
+    estado,
+    id,
+    descripcion,
+    recursos = [],
+    equipo = [],
+  } = proyecto;
+
   return (
     <section className="project-detail-panel">
       <div className="detail-header">
@@ -16,9 +25,10 @@ const DetalleProyecto = ({ proyecto, onCerrar }) => {
         </button>
       </div>
 
-      {descripcion.map((parrafo, index) => (
-        <p key={index}>{parrafo}</p>
-      ))}
+      <div className="detail-section">
+        <h4>Descripción</h4>
+        <p>{descripcion}</p>
+      </div>
 
       <div className="detail-section">
         <h4>Equipo</h4>
@@ -35,9 +45,9 @@ const DetalleProyecto = ({ proyecto, onCerrar }) => {
         <h4>Recursos</h4>
         <ul>
           {recursos.map((recurso) => (
-            <li key={recurso.url}>
-              <a href={recurso.url} target="_blank" rel="noreferrer">
-                {recurso.nombre}
+            <li key={`${recurso.tipo}-${recurso.enlace}`}>
+              <a href={recurso.enlace} target="_blank" rel="noreferrer">
+                {recurso.tipo}
               </a>
             </li>
           ))}

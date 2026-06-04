@@ -1,31 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { obtenerProyectos, agregarProyecto, eliminarProyecto, buscarProyecto } from '../services/proyectoService';
 import ProyectoCard from './ProyectoCard';
 import DetalleProyecto from './DetalleProyecto';
 import FormularioProyecto from './FormularioProyecto';
+import RegistroActividad from './RegistroActividad';
 
 const ListaProyectos = () => {
-  const [proyectos, setProyectos] = useState([]);
+  const [proyectos, setProyectos] = useState(obtenerProyectos());
   const [busqueda, setBusqueda] = useState('');
   const [selectedProject, setSelectedProject] = useState(null);
+  const [ultimaActualizacion, setUltimaActualizacion] = useState(null);
 
+  // bandera para saber si hubo un alta o baja real
+  // arranca en false asi el efecto no salta al montar ni cuando filtro
+  const huboCambio = useRef(false);
+
+  // cada vez que cambia la lista guardo la fecha, pero solo si el cambio
+  // vino de agregar o eliminar (por eso primero reviso la bandera)
   useEffect(() => {
-    setProyectos(obtenerProyectos());
-  }, []);
+    if (huboCambio.current) {
+      setUltimaActualizacion(new Date());
+    }
+  }, [proyectos]);
 
   const handleBuscar = (e) => {
-    const texto = e.target.value;
-    setBusqueda(texto);
-
-    if (!texto.trim()) {
-      setProyectos(obtenerProyectos());
-      return;
-    }
-
-    setProyectos(buscarProyecto(texto));
+    setBusqueda(e.target.value);
   };
 
   const handleEliminar = (id) => {
+    huboCambio.current = true;
     setProyectos(eliminarProyecto(id));
 
     if (selectedProject?.id === id) {
@@ -34,9 +37,14 @@ const ListaProyectos = () => {
   };
 
   const handleAgregarProyecto = (nuevoProyecto) => {
+    huboCambio.current = true;
     setProyectos(agregarProyecto(nuevoProyecto));
     setBusqueda('');
   };
+
+  // si hay algo escrito en el buscador filtro, sino muestro la lista completa
+  // el buscador no toca el estado proyectos, por eso no dispara el registro
+  const proyectosVisibles = busqueda.trim() ? buscarProyecto(busqueda) : proyectos;
 
   return (
     <div className="contenedor-proyectos">
@@ -66,9 +74,9 @@ const ListaProyectos = () => {
           <p>Revisa los proyectos guardados y elimina los que ya no necesites.</p>
         </div>
 
-        {proyectos.length > 0 ? (
+        {proyectosVisibles.length > 0 ? (
           <div className="project-list">
-            {proyectos.map((proy) => (
+            {proyectosVisibles.map((proy) => (
               <ProyectoCard
                 key={proy.id}
                 proyecto={proy}
@@ -80,6 +88,8 @@ const ListaProyectos = () => {
         ) : (
           <p className="empty-state">No hay proyectos registrados en este momento.</p>
         )}
+
+        {ultimaActualizacion && <RegistroActividad fecha={ultimaActualizacion} />}
       </section>
 
       {selectedProject && (

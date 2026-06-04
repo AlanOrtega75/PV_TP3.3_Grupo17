@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const FormularioProyecto = ({ onAgregar }) => {
   const [formValues, setFormValues] = useState({
@@ -7,13 +7,19 @@ const FormularioProyecto = ({ onAgregar }) => {
     categoria: '',
     estado: 'Pendiente',
     descripcion: '',
-    recursos: '',
-    equipo: '',
   });
+
+  // listas que se van armando con los botones "Agregar"
+  const [recursos, setRecursos] = useState([]);
+  const [equipo, setEquipo] = useState([]);
+
+  // inputs temporales: lo que se esta cargando antes de sumarlo a la lista
+  const [recursoActual, setRecursoActual] = useState({ tipo: 'GitHub', enlace: '' });
+  const [miembroActual, setMiembroActual] = useState({ nombre: '', rol: '' });
 
   const [error, setError] = useState('');
 
-  const { titulo, idProyecto, categoria, estado, descripcion, recursos, equipo } = formValues;
+  const { titulo, idProyecto, categoria, estado, descripcion } = formValues;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,34 +30,35 @@ const FormularioProyecto = ({ onAgregar }) => {
     }));
   };
 
-  const parseRecursos = (texto) => {
-    return texto
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .map((item) => {
-        const [tipo, enlace] = item.split('|').map((parte) => parte.trim());
+  // suma el recurso cargado en los inputs temporales a la lista
+  const agregarRecurso = () => {
+    if (!recursoActual.enlace.trim()) {
+      return;
+    }
 
-        return {
-          tipo: tipo || 'Recurso',
-          enlace: enlace || '#',
-        };
-      });
+    setRecursos((prev) => [...prev, { tipo: recursoActual.tipo, enlace: recursoActual.enlace.trim() }]);
+    setRecursoActual({ tipo: 'GitHub', enlace: '' });
   };
 
-  const parseEquipo = (texto) => {
-    return texto
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean)
-      .map((item) => {
-        const [nombre, rol] = item.split('|').map((parte) => parte.trim());
+  const quitarRecurso = (indice) => {
+    setRecursos((prev) => prev.filter((_, i) => i !== indice));
+  };
 
-        return {
-          nombre: nombre || 'Miembro',
-          rol: rol || 'Rol no definido',
-        };
-      });
+  // suma el miembro cargado en los inputs temporales a la lista
+  const agregarMiembro = () => {
+    if (!miembroActual.nombre.trim()) {
+      return;
+    }
+
+    setEquipo((prev) => [...prev, {
+      nombre: miembroActual.nombre.trim(),
+      rol: miembroActual.rol.trim() || 'Rol no definido',
+    }]);
+    setMiembroActual({ nombre: '', rol: '' });
+  };
+
+  const quitarMiembro = (indice) => {
+    setEquipo((prev) => prev.filter((_, i) => i !== indice));
   };
 
   const handleSubmit = (e) => {
@@ -68,22 +75,24 @@ const FormularioProyecto = ({ onAgregar }) => {
       categoria: categoria.trim(),
       estado,
       descripcion: descripcion.trim() || 'Descripción general del proyecto. Este proyecto busca aportar una solución educativa clara, organizada y funcional.',
-      recursos: parseRecursos(recursos),
-      equipo: parseEquipo(equipo),
+      recursos,
+      equipo,
     };
 
     onAgregar(nuevoProyecto);
 
+    // limpio todo el formulario
     setFormValues({
       titulo: '',
       idProyecto: '',
       categoria: '',
       estado: 'Pendiente',
       descripcion: '',
-      recursos: '',
-      equipo: '',
     });
-
+    setRecursos([]);
+    setEquipo([]);
+    setRecursoActual({ tipo: 'GitHub', enlace: '' });
+    setMiembroActual({ nombre: '', rol: '' });
     setError('');
   };
 
@@ -153,27 +162,79 @@ const FormularioProyecto = ({ onAgregar }) => {
       </div>
 
       <div className="project-form-row">
-        <label htmlFor="recursosProyecto">Recursos</label>
-        <input
-          id="recursosProyecto"
-          name="recursos"
-          type="text"
-          placeholder="GitHub|https://..., Drive|https://..., PDF|https://..."
-          value={recursos}
-          onChange={handleChange}
-        />
+        <label htmlFor="enlaceRecurso">Recursos</label>
+        <div className="project-form-inline">
+          <select
+            id="tipoRecurso"
+            name="tipoRecurso"
+            value={recursoActual.tipo}
+            onChange={(e) => setRecursoActual((prev) => ({ ...prev, tipo: e.target.value }))}
+          >
+            <option value="GitHub">GitHub</option>
+            <option value="Drive">Drive</option>
+            <option value="PDF">PDF</option>
+          </select>
+          <input
+            id="enlaceRecurso"
+            type="text"
+            placeholder="https://..."
+            value={recursoActual.enlace}
+            onChange={(e) => setRecursoActual((prev) => ({ ...prev, enlace: e.target.value }))}
+          />
+          <button type="button" className="secondary-button" onClick={agregarRecurso}>
+            Agregar
+          </button>
+        </div>
+
+        {recursos.length > 0 && (
+          <ul className="form-chips">
+            {recursos.map((recurso, indice) => (
+              <li key={`${recurso.tipo}-${indice}`}>
+                <span>{recurso.tipo} — {recurso.enlace}</span>
+                <button type="button" onClick={() => quitarRecurso(indice)}>
+                  quitar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="project-form-row">
-        <label htmlFor="equipoProyecto">Equipo</label>
-        <input
-          id="equipoProyecto"
-          name="equipo"
-          type="text"
-          placeholder="Nombre|Rol, Nombre|Rol"
-          value={equipo}
-          onChange={handleChange}
-        />
+        <label htmlFor="nombreMiembro">Equipo</label>
+        <div className="project-form-inline">
+          <input
+            id="nombreMiembro"
+            type="text"
+            placeholder="Nombre"
+            value={miembroActual.nombre}
+            onChange={(e) => setMiembroActual((prev) => ({ ...prev, nombre: e.target.value }))}
+          />
+          <input
+            id="rolMiembro"
+            name="rolMiembro"
+            type="text"
+            placeholder="Rol"
+            value={miembroActual.rol}
+            onChange={(e) => setMiembroActual((prev) => ({ ...prev, rol: e.target.value }))}
+          />
+          <button type="button" className="secondary-button" onClick={agregarMiembro}>
+            Agregar
+          </button>
+        </div>
+
+        {equipo.length > 0 && (
+          <ul className="form-chips">
+            {equipo.map((miembro, indice) => (
+              <li key={`${miembro.nombre}-${indice}`}>
+                <span>{miembro.nombre} — {miembro.rol}</span>
+                <button type="button" onClick={() => quitarMiembro(indice)}>
+                  quitar
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {error && <p className="form-error">{error}</p>}

@@ -421,11 +421,75 @@ button {
 }
 
 .app-footer {
-  padding: 1.25rem 1.5rem;
   background: #0f172a;
   color: #94a3b8;
-  text-align: center;
+  border-top: 4px solid var(--primary);
+  font-size: 0.9rem;
 }
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 2.5rem;
+  width: min(1200px, calc(100% - 3rem));
+  margin: 0 auto;
+  padding: 3.5rem 0;
+  text-align: left;
+}
+
+.footer-column h3 {
+  color: #ffffff;
+  font-size: 1.1rem;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.footer-column p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+.footer-column strong {
+  color: #e2e8f0;
+}
+
+.footer-column ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-column li {
+  margin-bottom: 0.75rem;
+}
+
+.footer-column a {
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.2s ease, padding-left 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.footer-column a:hover {
+  color: #3b82f6;
+  padding-left: 4px;
+}
+
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 1.75rem 1.5rem;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.85rem;
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
 
 @media (max-width: 720px) {
   .contenido-principal {
